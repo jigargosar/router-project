@@ -73,12 +73,10 @@ describe("Router Fuzz Tests", () => {
     it("should return 404 for /user/:id(int) with non-numeric id", () => {
         fc.assert(
             fc.property(
-                // Generate an alphabetic string (avoid numeric-only).
-                fc.stringOf(fc.constantFrom("a", "b", "c", "d", "e"), { minLength: 1 }),
-                (str) => {
-                    // If the generated string is numeric, skip.
-                    if (/^\d+$/.test(str)) return true;
-                    const url = `/user/${str}`;
+                // Generate arbitrary strings, then filter out pure numeric values to ensure we get non-numeric IDs
+                fc.string().filter(str => str.length > 0 && !/^\d+$/.test(str)),
+                (nonNumericId) => {
+                    const url = `/user/${nonNumericId}`;
                     const result = router.handleRequest("GET", url);
                     return result === "404 Not Found";
                 }
